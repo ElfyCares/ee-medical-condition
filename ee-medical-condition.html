@@ -1,5 +1,8 @@
 <link rel="import" href="../polymer/polymer.html">
+
 <!-- Elfy -->
+<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
+<link rel="import" href="../js-data-behaviors/js-data-record-behavior.html">
 
 <!-- Iron -->
 
@@ -8,6 +11,9 @@
 <link rel="import" href="../paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
 
 <!-- Third -->
 
@@ -29,24 +35,71 @@ display and add a medical condition
       pointer-events: none;
       opacity: 0.6;
     }
+
+    .row {
+      padding: 0 12px;
+      height: 48px;
+      border: 1px solid #eee;
+      margin-top: -1px;
+    }
+    .actions {
+      opacity: 0;
+    }
+    .row:hover > .actions {
+      opacity: 1;
+    }
+
+    .edit-container {
+      padding: 24px;
+    }
+
+    .disabled {
+      pointer-events: none;
+    }
   </style>
   <div class="error">[[errorMessage]]</div>
-  <div>
-    <paper-checkbox checked="{{medicalCondition.active}}"></paper-checkbox>
-    <span>&nbsp;[[medicalCondition.name]]</span>
-  </div>
 
-  <template is="dom-if" if="[[medicalCondition.active]]">
-    <paper-radio-group selected="{{medicalCondition.degree}}">
-      <template is="dom-repeat" items="[[medicalCondition.choices]]">
-        <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
-      </template>
-    </paper-radio-group>
-    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
-    <paper-button on-tap="_store"></paper-button>
+  <!-- Closed = active + id -->
+  <template is="dom-if" if="[[!open]]">
+    <div class="row h-c">
+      <paper-checkbox checked="[[hasId]]" class="disabled"></paper-checkbox>
+      <span>[[medicalCondition.degree]]</span>&nbsp;<span>[[medicalCondition.name]]</span>
+      <span class="space"></span>
+      <div class="actions">
+        <paper-icon-button icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+      </div>
+    </div>
   </template>
 
-  <template is="dom-if" if="[[!medicalCondition.active]]">
+  <template is="dom-if" if="[[open]]">
+    <template is="dom-if" if="[[hasChoices]]">
+      <div>
+        <span>&nbsp;[[medicalCondition.name]]</span>
+      </div>
+      <paper-radio-group selected="{{medicalCondition.degree}}">
+        <template is="dom-repeat" items="[[medicalCondition.choices]]">
+          <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+        </template>
+      </paper-radio-group>
+    </template>
+
+    <template is="dom-if" if="[[!hasChoices]]">
+      <paper-input label="Name" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
+    </template>
+
+    <paper-input hidden="[[hasChoices]]" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+    <paper-button on-tap="store">Save</paper-button>
+    <a class="a-button" on-tap="exitEditMode">Cancel</a>
+    <a class="a-button" on-tap="_delete">Delete</a>
+  </template>
+
+  <!-- Open = !active + standard-->
+  <!-- <template is="dom-if" if="[[_and(open,notEdit,standard)]]">
+    <div>
+      <paper-checkbox checked="{{edit}}"></paper-checkbox>
+      <span>&nbsp;[[medicalCondition.name]]</span>
+    </div>
     <div class="disabled">
       <paper-radio-group>
         <template is="dom-repeat" items="[[medicalCondition.choices]]">
@@ -55,7 +108,37 @@ display and add a medical condition
       </paper-radio-group>
       <paper-input label="Can you specify?"></paper-input>
     </div>
+  </template> -->
+
+  <!-- Open + edit standard = active + standard -->
+  <!-- <template is="dom-if" if="[[_and(open,edit,standard)]]">
+    <div>
+      <paper-checkbox checked="{{edit}}"></paper-checkbox>
+      <span>&nbsp;[[medicalCondition.name]]</span>
+    </div>
+    <paper-radio-group selected="{{medicalCondition.degree}}">
+      <template is="dom-repeat" items="[[medicalCondition.choices]]">
+        <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+      </template>
+    </paper-radio-group>
+    <paper-input hidden="[[medicalCondition.choices]]" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+  </template> -->
+
+  <!-- Open + edit other = active + !standard -->
+  <!-- <template is="dom-if" if="[[_and(open,edit,notStandard)]]">
+    <div class="h-c">
+      <paper-checkbox checked="{{edit}}"></paper-checkbox>
+      <paper-input label="Name" placeholder="e.g. Cataract" value="{{medicalCondition.name}}"></paper-input>
+      <paper-input label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+    </div>
+    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
   </template>
+
+  <template is="dom-if" if="[[_and(open,edit)]]">
+    <paper-button on-tap="store">Save</paper-button>
+    <a class="a-button" on-tap="exitEditMode">Cancel</a>
+  </template> -->
 
 </template>
 <script>
@@ -71,6 +154,19 @@ display and add a medical condition
     ],
 
     properties: {
+      isNewRecord: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        observer: '_isNewRecordChanged'
+      },
+
+      open: {
+        type: Boolean,
+        value: false,
+        notify: true,
+      },
+
       medicalCondition: {
         type: Object,
         value() { return {} },
@@ -81,6 +177,44 @@ display and add a medical condition
         type: Object,
         value() { return {} }
       },
+
+      hasId: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        computed: '_computeHasId(medicalCondition, medicalCondition.*)'
+      },
+
+      hasChoices: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        computed: '_computeChoices(medicalCondition)'
+      },
+    },
+
+    _isNewRecordChanged(isNew) {
+      this.open = isNew || false
+    },
+
+    _computeChoices(medicalCondition) {
+      if (medicalCondition && medicalCondition.choices && medicalCondition.choices.length > 0) {
+        return true
+      } else {
+        return false
+      }
+    },
+
+    _computeHasId(medicalCondition) {
+      return (medicalCondition && medicalCondition.id) ? true : false
+    },
+
+    toEditMode() {
+      this.open = true
+    },
+
+    exitEditMode() {
+      this.open = false
     },
 
     store() {
@@ -89,14 +223,25 @@ display and add a medical condition
       if (this.medicalCondition.id) {
         this._save()
       } else {
-        if (this.medicalCondition.active) {
-          var r = App.MedicalCondition.createRecord()
-          for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
-          r.careRecipient = this.careRecipient
-          r.save()
-        }
+        var r = App.Store.createRecord('medicalConditions')
+        for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
+        r.careRecipient = this.careRecipient
+        r.key = (r.key && r.key !== '') ? r.key : r.name.replace(' ', '_')
+        this.medicalCondition = r
+        this._save()
       }
     },
+
+    _recordCreated() {
+      this.isNewRecord = false
+      this.exitEditMode()
+    },
+    _recordUpdated() {
+      this.exitEditMode()
+    },
+    _recordDeleted() {
+      this.exitEditMode()
+    }
 
   });
 </script>

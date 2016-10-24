@@ -1,10 +1,15 @@
 <link rel="import" href="../polymer/polymer.html">
+
 <!-- Elfy -->
+<link rel="import" href="../ee-shared-styles/shared-styles.html">
 <link rel="import" href="../ee-app-settings/ee-app-settings.html">
+<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
+<link rel="import" href="../js-data-behaviors/js-data-collection-behavior.html">
 
 <!-- Iron -->
 
 <!-- Paper -->
+<link rel="import" href="../paper-fab/paper-fab.html">
 
 <!-- Third -->
 
@@ -25,17 +30,27 @@ display and add a medical condition
       }
 
       ee-medical-condition {
-        margin-bottom: 12px;
+      }
+
+      paper-fab {
+        margin: 12px auto;
       }
     </style>
 
     <ee-app-settings
       standard-medical-condition-records="{{standardMedicalConditions}}"
-      records-reset-trigger="[[careRecipient]]"></ee-app-settings>
+      records-reset-trigger="[[careRecipient]]">
+    </ee-app-settings>
 
-    <template is="dom-repeat" items="{{mergedMedicalConditions}}" id="mcList">
-      <ee-medical-condition care-recipient="[[careRecipient]]" medical-condition="[[item]]"></ee-medical-condition>
+    <template is="dom-repeat" items="{{mergedMedicalConditions}}" sort="_sort">
+      <ee-medical-condition
+        care-recipient="[[careRecipient]]"
+        medical-condition="[[item]]"
+        is-new-record="{{item.new}}">
+      </ee-medical-condition>
     </template>
+
+    <paper-fab icon="add" on-tap="_addMedicalCondition"></paper-fab>
 
   </template>
   <script>
@@ -73,8 +88,27 @@ display and add a medical condition
       },
 
       observers: [
-        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions)'
+        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions, medicalConditions.*)'
       ],
+
+      _addMedicalCondition() {
+        var r = App.MedicalCondition.createRecord()
+        r.active = true
+        r.new = true
+        this.push('medicalConditions', r)
+      },
+
+      _sort(a,b) {
+        if (a.id && !b.id) return -1
+        if (b.id && !a.id) return 1
+        if ((a.id && b.id) || (!a.id && !b.id)) {
+          return a.name > b.name
+        }
+      },
+
+      _removeMedicalCondition(e) {
+        this.splice('medicalConditions', this.medicalConditions.indexOf(e.model.medicalCondition), 1);
+      },
 
       _careRecipientChanged(cr) {
         if (!cr || !cr.id) {
@@ -86,31 +120,40 @@ display and add a medical condition
       },
 
       _mergeMedicalConditions(medicalConditions, standardMedicalConditions) {
-        if (!medicalConditions || !standardMedicalConditions) this.set('mergedMedicalConditions', [])
+          if (!medicalConditions || !standardMedicalConditions) this.set('mergedMedicalConditions', [])
 
-        // extend stored medical conditions array
-        // with choices and name fields from standardMedicalConditions
+          this.set('mergedMedicalConditions', [])
 
-        standardMedicalConditions.forEach((e) => {
-          var mc = medicalConditions.find(m => m.key === e.key)
-          if (mc) {
-            mc.choices = e.choices
-            mc.name = mc.name ? mc.name : e.name
-          }
-        })
+          medicalConditions.forEach((e) => {
+            e.active=true
+            e.new = false
+          })
+          // extend stored medical conditions array
+          // with choices and name fields from standardMedicalConditions
 
-        // add standard medical conditions to array (distinct by key)
-        var merged = medicalConditions.slice()
-        standardMedicalConditions.forEach((e) => {
-          if (merged.findIndex(m => e.key === m.key) === -1) {
-            merged.push(e)
-          }
-        })
+          standardMedicalConditions.forEach((e) => {
+            var mc = medicalConditions.find(m => m.key === e.key)
+            if (mc) {
+              mc.choices = e.choices
+              mc.name = mc.name ? mc.name : e.name
+              mc.standard = true
+            }
+          })
 
-        // sort by name
-        merged.sort(function(a,b) { return a.name > b.name })
+          // add standard medical conditions to array (distinct by key)
+          var merged = medicalConditions.slice()
+          standardMedicalConditions.forEach((e) => {
+            e.standard = true
+            if (merged.findIndex(m => e.key === m.key) === -1) {
+              merged.push(e)
+            }
+          })
 
-        this.set('mergedMedicalConditions', merged)
+          // sort by name
+          merged.sort(function(a,b) { return a.name > b.name })
+
+          this.set('mergedMedicalConditions', merged)
+
       },
 
     });
