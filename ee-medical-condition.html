@@ -1,0 +1,103 @@
+<link rel="import" href="../polymer/polymer.html">
+<!-- Elfy -->
+
+<!-- Iron -->
+
+<!-- Paper -->
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+<!-- Third -->
+
+<!-- My -->
+<!--
+`ee-medical-condition`
+display and add a medical condition
+
+@demo demo/index.html
+-->
+<dom-module id="ee-medical-condition">
+  <template>
+  <style is="custom-style" include="shared-styles">
+    :host {
+      display: block;
+    }
+
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+  </style>
+  <div class="error">[[errorMessage]]</div>
+  <div>
+    <paper-checkbox checked="{{medicalCondition.active}}"></paper-checkbox>
+    <span>&nbsp;[[medicalCondition.name]]</span>
+  </div>
+
+  <template is="dom-if" if="[[medicalCondition.active]]">
+    <paper-radio-group selected="{{medicalCondition.degree}}">
+      <template is="dom-repeat" items="[[medicalCondition.choices]]">
+        <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+      </template>
+    </paper-radio-group>
+    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+    <paper-button on-tap="_store"></paper-button>
+  </template>
+
+  <template is="dom-if" if="[[!medicalCondition.active]]">
+    <div class="disabled">
+      <paper-radio-group>
+        <template is="dom-repeat" items="[[medicalCondition.choices]]">
+          <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+        </template>
+      </paper-radio-group>
+      <paper-input label="Can you specify?"></paper-input>
+    </div>
+  </template>
+
+</template>
+<script>
+  Polymer({
+
+    recordName: 'medicalCondition',
+
+    is: 'ee-medical-condition',
+
+    behaviors: [
+      Elfy.EEHelperBehavior,
+      Elfy.JSDataRecordBehavior,
+    ],
+
+    properties: {
+      medicalCondition: {
+        type: Object,
+        value() { return {} },
+        notify: true,
+      },
+
+      careRecipient: {
+        type: Object,
+        value() { return {} }
+      },
+    },
+
+    store() {
+      if (!this.medicalCondition) return
+
+      if (this.medicalCondition.id) {
+        this._save()
+      } else {
+        if (this.medicalCondition.active) {
+          var r = App.MedicalCondition.createRecord()
+          for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
+          r.careRecipient = this.careRecipient
+          r.save()
+        }
+      }
+    },
+
+  });
+</script>
+</dom-module>

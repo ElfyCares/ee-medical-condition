@@ -1,0 +1,118 @@
+<link rel="import" href="../polymer/polymer.html">
+<!-- Elfy -->
+<link rel="import" href="../ee-app-settings/ee-app-settings.html">
+
+<!-- Iron -->
+
+<!-- Paper -->
+
+<!-- Third -->
+
+<!-- My -->
+<link rel="import" href="ee-medical-condition.html">
+
+<!--
+`ee-medical-condition-list`
+display and add a medical condition
+@demo demo/index.html
+-->
+
+<dom-module id="ee-medical-condition-list">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      ee-medical-condition {
+        margin-bottom: 12px;
+      }
+    </style>
+
+    <ee-app-settings
+      standard-medical-condition-records="{{standardMedicalConditions}}"
+      records-reset-trigger="[[careRecipient]]"></ee-app-settings>
+
+    <template is="dom-repeat" items="{{mergedMedicalConditions}}" id="mcList">
+      <ee-medical-condition care-recipient="[[careRecipient]]" medical-condition="[[item]]"></ee-medical-condition>
+    </template>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'ee-medical-condition-list',
+
+      behaviors: [
+        Elfy.EEHelperBehavior,
+        Elfy.JSDataCollectionBehavior,
+      ],
+
+      properties: {
+        careRecipient: {
+          type: Object,
+          value() { return {} },
+          notify: true,
+          observer: '_careRecipientChanged'
+        },
+
+        standardMedicalConditions: {
+          type: Array,
+          value() { return [] }
+        },
+
+        medicalConditions: {
+          type: Array,
+          value() { return [] }
+        },
+
+        mergedMedicalConditions: {
+          type: Array,
+          value() { return [] },
+        },
+      },
+
+      observers: [
+        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions)'
+      ],
+
+      _careRecipientChanged(cr) {
+        if (!cr || !cr.id) {
+          this.set('medicalConditions', [])
+        } else {
+          this.JSData.collections = [{'name': 'medicalConditions', 'query': {'careRecipientId': cr.id}}]
+          this._loadData()
+        }
+      },
+
+      _mergeMedicalConditions(medicalConditions, standardMedicalConditions) {
+        if (!medicalConditions || !standardMedicalConditions) this.set('mergedMedicalConditions', [])
+
+        // extend stored medical conditions array
+        // with choices and name fields from standardMedicalConditions
+
+        standardMedicalConditions.forEach((e) => {
+          var mc = medicalConditions.find(m => m.key === e.key)
+          if (mc) {
+            mc.choices = e.choices
+            mc.name = mc.name ? mc.name : e.name
+          }
+        })
+
+        // add standard medical conditions to array (distinct by key)
+        var merged = medicalConditions.slice()
+        standardMedicalConditions.forEach((e) => {
+          if (merged.findIndex(m => e.key === m.key) === -1) {
+            merged.push(e)
+          }
+        })
+
+        // sort by name
+        merged.sort(function(a,b) { return a.name > b.name })
+
+        this.set('mergedMedicalConditions', merged)
+      },
+
+    });
+  </script>
+</dom-module>
