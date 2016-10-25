@@ -42,11 +42,12 @@ display and add a medical condition
       records-reset-trigger="[[careRecipient]]">
     </ee-app-settings>
 
-    <template is="dom-repeat" items="{{mergedMedicalConditions}}" sort="_sort">
+    <template is="dom-repeat" items="{{mergedMedicalConditions}}" as="medicalCondition" sort="_sort">
       <ee-medical-condition
         care-recipient="[[careRecipient]]"
-        medical-condition="[[item]]"
-        is-new-record="{{item.new}}">
+        medical-condition="[[medicalCondition]]"
+        on-remove="_removeMedicalCondition"
+        is-new-record="{{medicalCondition.new}}">
       </ee-medical-condition>
     </template>
 
@@ -93,20 +94,21 @@ display and add a medical condition
 
       _addMedicalCondition() {
         var r = App.MedicalCondition.createRecord()
-        r.active = true
         r.new = true
-        this.push('medicalConditions', r)
+        this.unshift('medicalConditions', r)
       },
 
       _sort(a,b) {
-        if (a.id && !b.id) return -1
-        if (b.id && !a.id) return 1
+        if (a.new || b.new) return a.new ? 1 : -1
+        if (a.id && !b.id) return 1
+        if (b.id && !a.id) return -1
         if ((a.id && b.id) || (!a.id && !b.id)) {
           return a.name > b.name
         }
       },
 
       _removeMedicalCondition(e) {
+        // remove newly created (not stored)
         this.splice('medicalConditions', this.medicalConditions.indexOf(e.model.medicalCondition), 1);
       },
 
@@ -120,40 +122,38 @@ display and add a medical condition
       },
 
       _mergeMedicalConditions(medicalConditions, standardMedicalConditions) {
-          if (!medicalConditions || !standardMedicalConditions) this.set('mergedMedicalConditions', [])
+        if (!medicalConditions || !standardMedicalConditions || !this.careRecipient.id) return this.set('mergedMedicalConditions', [])
 
-          this.set('mergedMedicalConditions', [])
+        this.set('mergedMedicalConditions', [])
 
-          medicalConditions.forEach((e) => {
-            e.active=true
-            e.new = false
-          })
-          // extend stored medical conditions array
-          // with choices and name fields from standardMedicalConditions
+        medicalConditions.forEach((e) => {
+          e.active=true
+        })
+        // extend stored medical conditions array
+        // with choices and name fields from standardMedicalConditions
 
-          standardMedicalConditions.forEach((e) => {
-            var mc = medicalConditions.find(m => m.key === e.key)
-            if (mc) {
-              mc.choices = e.choices
-              mc.name = mc.name ? mc.name : e.name
-              mc.standard = true
-            }
-          })
+        standardMedicalConditions.forEach((e) => {
+          var mc = medicalConditions.find(m => m.key === e.key)
+          if (mc) {
+            mc.choices = e.choices
+            mc.name = mc.name ? mc.name : e.name
+            mc.standard = true
+          }
+        })
 
-          // add standard medical conditions to array (distinct by key)
-          var merged = medicalConditions.slice()
-          standardMedicalConditions.forEach((e) => {
-            e.standard = true
-            if (merged.findIndex(m => e.key === m.key) === -1) {
-              merged.push(e)
-            }
-          })
+        // add standard medical conditions to array (distinct by key)
+        var merged = medicalConditions.slice()
+        standardMedicalConditions.forEach((e) => {
+          e.standard = true
+          if (merged.findIndex(m => e.key === m.key) === -1) {
+            merged.push(e)
+          }
+        })
 
-          // sort by name
-          merged.sort(function(a,b) { return a.name > b.name })
+        // sort by name
+        merged.sort(function(a,b) { return a.name > b.name })
 
-          this.set('mergedMedicalConditions', merged)
-
+        this.set('mergedMedicalConditions', merged)
       },
 
     });

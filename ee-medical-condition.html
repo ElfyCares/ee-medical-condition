@@ -13,9 +13,10 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-button/paper-button.html">
-
+<link rel="import" href="../paper-tooltip/paper-tooltip.html">
 
 <!-- Third -->
+<link rel="import" href="../paper-fab-transitions/paper-fab-morph.html">
 
 <!-- My -->
 <!--
@@ -50,7 +51,7 @@ display and add a medical condition
     }
 
     .edit-container {
-      padding: 24px;
+      padding: 12px;
     }
 
     .disabled {
@@ -66,79 +67,38 @@ display and add a medical condition
       <span>[[medicalCondition.degree]]</span>&nbsp;<span>[[medicalCondition.name]]</span>
       <span class="space"></span>
       <div class="actions">
-        <paper-icon-button icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+        <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+        <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_remove"></paper-icon-button>
       </div>
     </div>
+
+    <paper-tooltip for="delBtn" position="top">Delete now</paper-tooltip>
+    <paper-tooltip for="editBtn" position="top">Edit</paper-tooltip>
   </template>
 
   <template is="dom-if" if="[[open]]">
-    <template is="dom-if" if="[[hasChoices]]">
-      <div>
-        <span>&nbsp;[[medicalCondition.name]]</span>
-      </div>
-      <paper-radio-group selected="{{medicalCondition.degree}}">
-        <template is="dom-repeat" items="[[medicalCondition.choices]]">
-          <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
-        </template>
-      </paper-radio-group>
-    </template>
-
-    <template is="dom-if" if="[[!hasChoices]]">
-      <paper-input label="Name" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
-    </template>
-
-    <paper-input hidden="[[hasChoices]]" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
-    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
-    <paper-button on-tap="store">Save</paper-button>
-    <a class="a-button" on-tap="exitEditMode">Cancel</a>
-    <a class="a-button" on-tap="_delete">Delete</a>
-  </template>
-
-  <!-- Open = !active + standard-->
-  <!-- <template is="dom-if" if="[[_and(open,notEdit,standard)]]">
-    <div>
-      <paper-checkbox checked="{{edit}}"></paper-checkbox>
-      <span>&nbsp;[[medicalCondition.name]]</span>
-    </div>
-    <div class="disabled">
-      <paper-radio-group>
-        <template is="dom-repeat" items="[[medicalCondition.choices]]">
-          <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
-        </template>
-      </paper-radio-group>
-      <paper-input label="Can you specify?"></paper-input>
-    </div>
-  </template> -->
-
-  <!-- Open + edit standard = active + standard -->
-  <!-- <template is="dom-if" if="[[_and(open,edit,standard)]]">
-    <div>
-      <paper-checkbox checked="{{edit}}"></paper-checkbox>
-      <span>&nbsp;[[medicalCondition.name]]</span>
-    </div>
-    <paper-radio-group selected="{{medicalCondition.degree}}">
-      <template is="dom-repeat" items="[[medicalCondition.choices]]">
-        <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+    <div class="edit-container">
+      <template is="dom-if" if="[[hasChoices]]">
+        <div>
+          <span>&nbsp;[[medicalCondition.name]]</span>
+        </div>
+        <paper-radio-group selected="{{medicalCondition.degree}}">
+          <template is="dom-repeat" items="[[medicalCondition.choices]]">
+            <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+          </template>
+        </paper-radio-group>
       </template>
-    </paper-radio-group>
-    <paper-input hidden="[[medicalCondition.choices]]" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
-    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
-  </template> -->
 
-  <!-- Open + edit other = active + !standard -->
-  <!-- <template is="dom-if" if="[[_and(open,edit,notStandard)]]">
-    <div class="h-c">
-      <paper-checkbox checked="{{edit}}"></paper-checkbox>
-      <paper-input label="Name" placeholder="e.g. Cataract" value="{{medicalCondition.name}}"></paper-input>
-      <paper-input label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+      <template is="dom-if" if="[[!hasChoices]]">
+        <paper-input id="name" label="Name" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
+        <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+      </template>
+
+      <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+      <paper-button on-tap="store">Save</paper-button>
+      <a class="a-button" on-tap="_cancel">Cancel</a>
     </div>
-    <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
   </template>
-
-  <template is="dom-if" if="[[_and(open,edit)]]">
-    <paper-button on-tap="store">Save</paper-button>
-    <a class="a-button" on-tap="exitEditMode">Cancel</a>
-  </template> -->
 
 </template>
 <script>
@@ -154,6 +114,7 @@ display and add a medical condition
     ],
 
     properties: {
+
       isNewRecord: {
         type: Boolean,
         value: false,
@@ -217,6 +178,22 @@ display and add a medical condition
       this.open = false
     },
 
+    _cancel() {
+      if (this.medicalCondition.id) {
+        this.exitEditMode()
+      } else {
+        this._remove()
+      }
+    },
+
+    _remove() {
+      if (this.medicalCondition.id) {
+        this._delete()
+      } else {
+        this.fire('remove')
+      }
+    },
+
     store() {
       if (!this.medicalCondition) return
 
@@ -226,7 +203,9 @@ display and add a medical condition
         var r = App.Store.createRecord('medicalConditions')
         for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
         r.careRecipient = this.careRecipient
-        r.key = (r.key && r.key !== '') ? r.key : r.name.replace(' ', '_')
+        if (r.name) {
+            r.key = (r.key && r.key !== '') ? r.key : r.name.replace(' ', '_')
+        }
         this.medicalCondition = r
         this._save()
       }
