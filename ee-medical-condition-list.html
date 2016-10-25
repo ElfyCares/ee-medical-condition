@@ -29,10 +29,7 @@ display and add a medical condition
         display: block;
       }
 
-      ee-medical-condition {
-      }
-
-      paper-fab {
+      .add-fab {
         margin: 12px auto;
       }
     </style>
@@ -50,9 +47,7 @@ display and add a medical condition
         is-new-record="{{medicalCondition.new}}">
       </ee-medical-condition>
     </template>
-
-    <paper-fab icon="add" on-tap="_addMedicalCondition"></paper-fab>
-
+    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition"></paper-fab>
   </template>
   <script>
     Polymer({
@@ -122,7 +117,7 @@ display and add a medical condition
       },
 
       _mergeMedicalConditions(medicalConditions, standardMedicalConditions) {
-        if (!medicalConditions || !standardMedicalConditions || !this.careRecipient.id) return this.set('mergedMedicalConditions', [])
+        if (!medicalConditions || !standardMedicalConditions || !this.careRecipient || !this.careRecipient.id) return this.set('mergedMedicalConditions', [])
 
         this.set('mergedMedicalConditions', [])
 
