@@ -32,6 +32,12 @@ display and add a medical condition
       .add-fab {
         margin: 12px auto;
       }
+
+      .list-container {
+        background-color: #fff;
+        padding: 24px;
+        @apply(--ee-medical-condition-list-container);
+      }
     </style>
 
     <ee-app-settings
@@ -39,14 +45,16 @@ display and add a medical condition
       records-reset-trigger="[[careRecipient]]">
     </ee-app-settings>
 
-    <template is="dom-repeat" items="{{mergedMedicalConditions}}" as="medicalCondition" sort="_sort">
-      <ee-medical-condition
-        care-recipient="[[careRecipient]]"
-        medical-condition="[[medicalCondition]]"
-        on-remove="_removeMedicalCondition"
-        is-new-record="{{medicalCondition.new}}">
-      </ee-medical-condition>
-    </template>
+    <div class="list-container">
+      <template is="dom-repeat" items="{{mergedMedicalConditions}}" as="medicalCondition" sort="_sort">
+        <ee-medical-condition
+          care-recipient="[[careRecipient]]"
+          medical-condition="[[medicalCondition]]"
+          on-remove="_removeMedicalCondition"
+          is-new-record="{{medicalCondition.new}}">
+        </ee-medical-condition>
+      </template>
+    </div>
     <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition"></paper-fab>
   </template>
   <script>
