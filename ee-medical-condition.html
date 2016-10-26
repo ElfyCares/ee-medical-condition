@@ -92,8 +92,17 @@ display and add a medical condition
       </template>
 
       <template is="dom-if" if="[[!hasChoices]]">
-        <paper-input id="name" label="Name" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
-        <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+        <div class="h-r">
+          <paper-input id="name" class="space" label="Name" placeholder="e.g. Arthritis" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
+          <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+        </div>
+      </template>
+
+      <template is="dom-if" if="[[!medicalCondition.standard]]">
+        <paper-radio-group selected="{{medicalCondition.type}}" fallback-selection="condition">
+          <paper-radio-button name="condition">Is not an allergy</paper-radio-button>
+          <paper-radio-button name="allergy">Is an allergy</paper-radio-button>
+        </paper-radio-group>
       </template>
 
       <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
