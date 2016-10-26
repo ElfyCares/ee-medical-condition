@@ -103,8 +103,10 @@ display and add a medical condition
       },
 
       _removeMedicalCondition(e) {
-        // remove newly created (not stored)
-        this.splice('medicalConditions', this.medicalConditions.indexOf(e.model.medicalCondition), 1);
+        if (this.medicalConditions.indexOf(e.model.medicalCondition) > -1) {
+          // remove newly created (not stored)
+          this.splice('medicalConditions', this.medicalConditions.indexOf(e.model.medicalCondition), 1);
+        }
       },
 
       _careRecipientChanged(cr) {
