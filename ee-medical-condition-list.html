@@ -45,7 +45,7 @@ display and add a medical condition
       records-reset-trigger="[[careRecipient]]">
     </ee-app-settings>
 
-    <div class="list-container">
+    <div class="list-container" hidden="[[!careRecipient.id]]">
       <template is="dom-repeat" items="{{mergedMedicalConditions}}" as="medicalCondition" sort="_sort">
         <ee-medical-condition
           care-recipient="[[careRecipient]]"
@@ -56,7 +56,7 @@ display and add a medical condition
       </template>
     </div>
     <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition" hidden="[[!careRecipient.id]]"></paper-fab>
-    <div hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
+    <div class="center" hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
     Polymer({
