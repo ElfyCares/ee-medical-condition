@@ -55,7 +55,8 @@ display and add a medical condition
         </ee-medical-condition>
       </template>
     </div>
-    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition"></paper-fab>
+    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition" hidden="[[!careRecipient.id]]"></paper-fab>
+    <div hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
     Polymer({
