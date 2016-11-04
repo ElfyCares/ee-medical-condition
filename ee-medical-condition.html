@@ -213,7 +213,7 @@ display and add a medical condition
         this._save()
       } else {
         var r = App.Store.createRecord('medicalConditions')
-        for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
+        for (let k in this.medicalCondition) r[k] = this.medicalCondition[k]
         r.careRecipient = this.careRecipient
         if (r.name) {
             r.key = (r.key && r.key !== '') ? r.key : r.name.replace(' ', '_')
