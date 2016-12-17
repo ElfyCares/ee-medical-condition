@@ -66,7 +66,12 @@ display and add a medical condition
   <template is="dom-if" if="[[!open]]">
     <div class="row h-c">
       <paper-checkbox checked="[[hasId]]" class="disabled"></paper-checkbox>
-      <span>[[medicalCondition.degree]]</span>&nbsp;<span>[[medicalCondition.name]]</span>
+      <template is="dom-if" if="[[hasId]]" restamp="true">
+        <span>[[medicalCondition.name]]</span>:&nbsp;<span>[[medicalCondition.degree]]</span>
+      </template>
+      <template is="dom-if" if="[[!hasId]]" restamp="true">
+        <span>[[medicalCondition.name]]</span>
+      </template>
       <span class="space"></span>
       <div class="actions">
         <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
@@ -92,10 +97,16 @@ display and add a medical condition
       </template>
 
       <template is="dom-if" if="[[!hasChoices]]">
-        <div class="h-r">
-          <paper-input id="name" class="space" label="Name" placeholder="e.g. Arthritis" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
+        <template is="dom-if" if="[[medicalCondition.standard]]" restamp="true">
+          <div>[[medicalCondition.name]]</div>
           <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
-        </div>
+        </template>
+        <template is="dom-if" if="[[!medicalCondition.standard]]" restamp="true">
+          <div class="h-r">
+            <paper-input id="name" class="space" label="Name" placeholder="e.g. Arthritis" value="{{medicalCondition.name}}"></paper-input>
+            <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+          </div>
+        </template>
       </template>
 
       <template is="dom-if" if="[[!medicalCondition.standard]]">
@@ -105,7 +116,7 @@ display and add a medical condition
         </paper-radio-group>
       </template>
 
-      <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+      <paper-input label="[[medicalCondition.placeholder]]" value="{{medicalCondition.description}}"></paper-input>
       <paper-button on-tap="store">Save</paper-button>
       <a class="a-button" on-tap="_cancel">Cancel</a>
     </div>

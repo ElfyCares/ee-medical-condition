@@ -99,6 +99,7 @@ display and add a medical condition
       _addMedicalCondition() {
         var r = App.MedicalCondition.createRecord()
         r.new = true
+        r.placeholder = 'Can you specify?'
         this.unshift('medicalConditions', r)
       },
 
