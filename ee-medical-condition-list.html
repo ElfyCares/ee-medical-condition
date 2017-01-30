@@ -120,9 +120,8 @@ display and add a medical condition
       },
 
       _careRecipientChanged(cr) {
-        if (!cr || !cr.id) {
-          this.set('medicalConditions', [])
-        } else {
+        this.set('medicalConditions', [])
+        if (cr && cr.id) {
           this.JSData.collections = [{'name': 'medicalConditions', 'query': {'careRecipientId': cr.id}}]
           this._loadData()
         }
