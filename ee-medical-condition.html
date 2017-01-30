@@ -64,7 +64,7 @@ display and add a medical condition
 
   <!-- Closed = active + id -->
   <template is="dom-if" if="[[!open]]">
-    <div class="row h-c">
+    <div class="row h-c" on-tap="toEditMode">
       <paper-checkbox checked="[[hasId]]" class="disabled"></paper-checkbox>
       <template is="dom-if" if="[[hasId]]" restamp="true">
         <span>[[medicalCondition.name]]</span>:&nbsp;<span>[[medicalCondition.degree]]</span>
