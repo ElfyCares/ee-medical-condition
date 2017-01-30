@@ -5,6 +5,7 @@
 <link rel="import" href="../ee-app-settings/ee-app-settings.html">
 <link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
 <link rel="import" href="../js-data-behaviors/js-data-collection-behavior.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 
 <!-- Iron -->
 
@@ -66,6 +67,7 @@ display and add a medical condition
       behaviors: [
         Elfy.EEHelperBehavior,
         Elfy.JSDataCollectionBehavior,
+        Polymer.IronResizableBehavior,
       ],
 
       properties: {
@@ -95,6 +97,10 @@ display and add a medical condition
       observers: [
         '_mergeMedicalConditions(medicalConditions, standardMedicalConditions, medicalConditions.*)'
       ],
+
+      attached() {
+        this.fire('resize')
+      },
 
       _addMedicalCondition() {
         var r = App.MedicalCondition.createRecord()
