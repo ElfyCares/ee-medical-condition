@@ -56,7 +56,10 @@ display and add a medical condition
         </ee-medical-condition>
       </template>
     </div>
-    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition" hidden="[[!careRecipient.id]]"></paper-fab>
+    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition" hidden="[[!careRecipient.id]]"
+      label="Add Medical Condition"
+      title="Add a medical condition">
+    </paper-fab>
     <div class="center" hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
@@ -71,11 +74,11 @@ display and add a medical condition
       ],
 
       properties: {
+
         careRecipient: {
           type: Object,
           value() { return {} },
           notify: true,
-          observer: '_careRecipientChanged'
         },
 
         standardMedicalConditions: {
@@ -95,7 +98,8 @@ display and add a medical condition
       },
 
       observers: [
-        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions, medicalConditions.*)'
+        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions, medicalConditions.*)',
+        '_careRecipientChanged(careRecipient, careRecipient.*)'
       ],
 
       attached() {
